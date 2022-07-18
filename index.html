@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>さめがめ</title>
+    <script src="https://unpkg.com/vue@3.2.37/dist/vue.global.js"></script>
+    <style>
+        .container {
+            display: flex;
+            flex-direction: row;
+            justify-content: start;
+            gap: 4px;
+            background-color: rgb(211, 220, 227);
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 4px;
+        }
+
+        .cell {
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            background-color: #aaa;
+        }
+
+        .a {
+            background-color: crimson;
+        }
+
+        .b {
+            background-color: dodgerblue;
+        }
+
+        .c {
+            background-color: mediumseagreen;
+        }
+
+        .d {
+            background-color: orchid;
+        }
+
+        /* ↑ここにCSSを書く。 */
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="container" :style="boardSize">
+            <div v-for="(col, i) of cells" :key="col.id" class="column">
+                <div v-for="(cell, j) of col.cells" :key="cell.id" class="cell" :class="[cell.color]" @click="remove(i, j)"></div>
+            </div>
+        </div>
+
+        <!-- ↑ここに表示するものを書く。 -->
+    </div>
+    
+    <script>
+        const App = {
+            setup() {
+                const colors = ['a', 'b', 'c', 'd']
+                const cols = 8
+                const rows = 7
+                const cells = Vue.ref([])
+
+                const boardSize = Vue.computed(() => `width: ${cols * (32 + 4) - 4}px; height: ${rows * (32 + 4) - 4}px;`)
+
+                // generatorを使ってcolorsの要素をランダムに1つずつ返す関数を作る。
+                const genColor = (function* () {
+                    while (true) {
+                        yield colors[Math.floor(Math.random() * colors.length)]
+                    }
+                })()
+
+                // ゲームボードの縦一列を生成する。
+                const genCol = () => {
+                    const result = []
+                    for (let i = 0; i < rows; ++i) {
+                        result.push({ id: i, color: genColor.next().value })
+                    }
+                    return result
+                }
+
+                // ゲームボードを生成する。
+                const genBoard = () => {
+                    const result = []
+                    for (let i = 0; i < cols; ++i) {
+                        result.push({ id: i, cells: genCol() })
+                    }
+                    return result
+                }
+
+                /**
+                 * 再帰的にcolorと同じ色の隣接セルを探索してreservedにリストアップする。
+                 * @type {(color: string, i: number, j: number, reserved: [number, number][], checked: [number, number][]) => [[number, number][], [number, number][]]}
+                 */
+                const search = (color, i, j, reserved, checked) => {
+                    // console.log(['enter', i, j])
+                    // そもそもセルがあるかどうか。
+                    if (i < 0 || i >= cells.value.length) return [reserved, checked]
+                    if (j < 0 || j >= cells.value[i].cells.length) return [reserved, checked]
+
+                    // 足を踏み入れたセルのアドレスは必ずcheckedに記録する。
+                    // console.log(['not found', i, j])
+                    checked.push([i, j])
+
+                    // 違う色だったらそのままreservedを返す。
+                    if (cells.value[i].cells[j].color !== color) return [reserved, checked]
+                
+                    // 同じ色だったらreservedに自身を追加して周囲の4セルをチェックする。
+                    reserved.push([i, j])
+                    if (!checked.some((v) => v[0] === i - 1 && v[1] === j)) [reserved, checked] = search(color, i - 1, j, reserved, checked)
+                    if (!checked.some((v) => v[0] === i + 1 && v[1] === j)) [reserved, checked] = search(color, i + 1, j, reserved, checked)
+                    if (!checked.some((v) => v[0] === i && v[1] === j - 1)) [reserved, checked] = search(color, i, j - 1, reserved, checked)
+                    if (!checked.some((v) => v[0] === i && v[1] === j + 1)) [reserved, checked] = search(color, i, j + 1, reserved, checked)
+                    return [reserved, checked]
+                }
+
+                // クリックされたセルとそれに隣接する同色セルを消す。
+                const remove = (i, j) => {
+                    const color = cells.value[i].cells[j].color
+
+                    const [reserved] = search(color, i, j, [], [])
+                    // 同じ色のセルがくっついていなかったら何もしない。
+                    if (reserved.length < 2) return
+
+                    // 消す順番を間違えると違うの消しちゃうな。
+                    // ソートしちゃうか。
+                    reserved.sort((a, b) => b[1] - a[1])
+                    // console.log(reserved)
+
+                    // で、この順番に消しますよと。
+                    reserved.forEach(([i, j]) => cells.value[i].cells.splice(j, 1))
+                    cells.value = cells.value.filter((v) => v.cells.length > 0)
+                }
+
+                Vue.onMounted(cells.value = genBoard())
+
+                return {
+                    cells,
+                    boardSize,
+                    remove,
+                }
+
+                // ↑ここにJavaScriptを書く。
+            },
+        } 
+
+        Vue.createApp(App).mount('#app')
+    </script>
+</body>
+</html>
