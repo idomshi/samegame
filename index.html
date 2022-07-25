@@ -27,21 +27,10 @@
             background-color: #aaa;
         }
 
-        .a {
-            background-color: crimson;
-        }
-
-        .b {
-            background-color: dodgerblue;
-        }
-
-        .c {
-            background-color: mediumseagreen;
-        }
-
-        .d {
-            background-color: orchid;
-        }
+        .a { background-color: crimson; }
+        .b { background-color: dodgerblue; }
+        .c { background-color: mediumseagreen; }
+        .d { background-color: orchid; }
 
         /* ↑ここにCSSを書く。 */
     </style>
@@ -97,13 +86,11 @@
                  * @type {(color: string, i: number, j: number, reserved: [number, number][], checked: [number, number][]) => [[number, number][], [number, number][]]}
                  */
                 const search = (color, i, j, reserved, checked) => {
-                    // console.log(['enter', i, j])
                     // そもそもセルがあるかどうか。
                     if (i < 0 || i >= cells.value.length) return [reserved, checked]
                     if (j < 0 || j >= cells.value[i].cells.length) return [reserved, checked]
 
                     // 足を踏み入れたセルのアドレスは必ずcheckedに記録する。
-                    // console.log(['not found', i, j])
                     checked.push([i, j])
 
                     // 違う色だったらそのままreservedを返す。
@@ -129,7 +116,6 @@
                     // 消す順番を間違えると違うの消しちゃうな。
                     // ソートしちゃうか。
                     reserved.sort((a, b) => b[1] - a[1])
-                    // console.log(reserved)
 
                     // で、この順番に消しますよと。
                     reserved.forEach(([i, j]) => cells.value[i].cells.splice(j, 1))
