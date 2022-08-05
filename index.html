@@ -31,6 +31,8 @@
         .b { background-color: dodgerblue; }
         .c { background-color: mediumseagreen; }
         .d { background-color: orchid; }
+        .e { background-color: goldenrod; }
+        .f { background-color: slategrey; }
 
         /* ↑ここにCSSを書く。 */
     </style>
@@ -49,9 +51,9 @@
     <script>
         const App = {
             setup() {
-                const colors = ['a', 'b', 'c', 'd']
-                const cols = 8
-                const rows = 7
+                const colors = ['a', 'b', 'c', 'd', 'e', 'f']
+                const cols = 15
+                const rows = 12
                 const cells = Vue.ref([])
 
                 const boardSize = Vue.computed(() => `width: ${cols * (32 + 4) - 4}px; height: ${rows * (32 + 4) - 4}px;`)
